@@ -52,7 +52,7 @@ float EncoderVel = 0;
 uint64_t Timestamp_Encoder = 0;
 
 float SetPoint = 0.0;
-uint16_t PWMOut = 3000;
+float PWMOut = 3000;
 float Error_Now = 0.0;
 float Error_Last = 0.0;
 float Sum_Error = 0.0;
@@ -144,8 +144,16 @@ int main(void)
 			Error_Now = SetPoint - (EncoderVel*(60.0/3072.0)); // EncoderVel*(60/3072) is in one note and it will be RPM.
 			Sum_Error += Error_Now;
 			PWMOut = (Kp*Error_Now) + (Ki*Sum_Error) + (Kd*(Error_Now - Error_Last)); //PID equation.
-			__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, PWMOut); // if TIM3 increase until it equal to PWMOut. TIM3 will be set to 0 again and start increase again. So that will be PWM.
-			__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, 0); // It will make motor rotate.
+			if (PWMOut < 0)
+			{
+				__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, 0);
+				__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, PWMOut*(-1));
+			}
+			else
+			{
+				__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, PWMOut); // if TIM3 increase until it equal to PWMOut. TIM3 will be set to 0 again and start increase again. So that will be PWM.
+				__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, 0); // It will make motor rotate.
+			}
 			EncoderVel = (EncoderVel * 99 + EncoderVelocity_Update()) / 100.0;
 			Error_Last = Error_Now;
 			RPM = EncoderVel*(60.0/3072.0);

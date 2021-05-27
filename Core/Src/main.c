@@ -141,6 +141,14 @@ int main(void)
 		if (micros() - Timestamp_Encoder >= 1000)
 		{
 			Timestamp_Encoder = micros();
+			if (SetPoint > 44.0)
+			{
+				SetPoint = 44.0;
+			}
+			else if (SetPoint < -44.0)
+			{
+				SetPoint = -44.0;
+			}
 			Error_Now = SetPoint - (EncoderVel*(60.0/3072.0)); // EncoderVel*(60/3072) is in one note and it will be RPM.
 			Sum_Error += Error_Now;
 			PWMOut = (Kp*Error_Now) + (Ki*Sum_Error) + (Kd*(Error_Now - Error_Last)); //PID equation.
